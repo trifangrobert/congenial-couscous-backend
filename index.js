@@ -32,6 +32,7 @@ io.on("connection", (socket) => {
   });
   socket.on("joinRoom", (data) => {
     //TODO check if room exists and if it is full
+    
     rooms[data.roomId] = { ...rooms[data.roomId], player2: socket.id, fen: startFen };
     socketToRoom[socket.id] = data.roomId;
     socket.join(data.roomId);
@@ -51,14 +52,9 @@ io.on("connection", (socket) => {
     roomId = socketToRoom[socket.id];
     rooms[roomId] = { ...rooms[roomId], fen: data.fen };
     io.to(roomId).emit("newMove", { fen: data.fen });
-    // if (rooms[roomId].player1 === socket.id) {
-    //   io.to(rooms[roomId].player2).emit("newMove", {
-    //     fen: data.fen,
-    //   });
-    // } else { 
-    //   io.to(rooms[roomId].player1).emit("newMove", {
-    //     fen: data.fen,
-    //   });
-    // }
   });
+  socket.on("gameOver", (data) => {
+    roomId = socketToRoom[socket.id];
+    io.to(roomId).emit("gameOver", { message: "game over!" });
+  })
 });
