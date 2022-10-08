@@ -20,12 +20,14 @@ server.listen(process.env.PORT || 8000, () => {
 
 let rooms = {};
 let socketToRoom = {};
+let socketToName = {};
 
 io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
   socket.on("createRoom", (data) => {
     rooms[data.roomId] = { player1: socket.id };
     socketToRoom[socket.id] = data.roomId;
+    socketToName[socket.id] = data.name;
     socket.join(data.roomId);
     console.log(`Room Created by ${data.name} with id ${data.roomId}`);
     console.log(socket.id);
@@ -35,17 +37,25 @@ io.on("connection", (socket) => {
     
     rooms[data.roomId] = { ...rooms[data.roomId], player2: socket.id, fen: startFen };
     socketToRoom[socket.id] = data.roomId;
+    socketToName[socket.id] = data.name;
     socket.join(data.roomId);
     console.log(`User Joined ${data.name} with id ${data.roomId}`);
+    console.log(socketToName[rooms[data.roomId].player1]);
     io.to(rooms[data.roomId].player1).emit("startGame", {
       play: true,
       fen: startFen,
       orientation: "white",
+      opponentName: socketToName[rooms[data.roomId].player2],
+      // opponentName: "Nicolae Guta",
+      userName: socketToName[rooms[data.roomId].player1],
     });
     io.to(rooms[data.roomId].player2).emit("startGame", {
       play: true,
       fen: startFen,
       orientation: "black",
+      opponentName: socketToName[rooms[data.roomId].player1],
+      userName: socketToName[rooms[data.roomId].player2],
+      // userName: "Nicolae Guta",
     });
   });
   socket.on("newMove", (data) => {
