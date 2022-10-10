@@ -21,6 +21,7 @@ server.listen(process.env.PORT || 8000, () => {
 let rooms = {};
 let socketToRoom = {};
 let socketToName = {};
+let socketToElo = {}
 
 io.on("connection", (socket) => {
   console.log(`User Connected ${socket.id}`);
@@ -28,9 +29,9 @@ io.on("connection", (socket) => {
     rooms[data.roomId] = { player1: socket.id };
     socketToRoom[socket.id] = data.roomId;
     socketToName[socket.id] = data.name;
+    socketToElo[socket.id] = data.elo;
     socket.join(data.roomId);
     console.log(`Room Created by ${data.name} with id ${data.roomId}`);
-    console.log(socket.id);
   });
   socket.on("joinRoom", (data) => {
     //TODO check if room exists and if it is full
@@ -38,24 +39,28 @@ io.on("connection", (socket) => {
     rooms[data.roomId] = { ...rooms[data.roomId], player2: socket.id, fen: startFen };
     socketToRoom[socket.id] = data.roomId;
     socketToName[socket.id] = data.name;
+    socketToElo[socket.id] = data.elo;
     socket.join(data.roomId);
     console.log(`User Joined ${data.name} with id ${data.roomId}`);
-    console.log(socketToName[rooms[data.roomId].player1]);
+    console.log("player1 elo: " + socketToElo[rooms[data.roomId].player1]);
+    console.log("player2 elo: " + socketToElo[rooms[data.roomId].player2]);
     io.to(rooms[data.roomId].player1).emit("startGame", {
       play: true,
       fen: startFen,
       orientation: "white",
       opponentName: socketToName[rooms[data.roomId].player2],
-      // opponentName: "Nicolae Guta",
+      opponentElo: socketToElo[rooms[data.roomId].player2],
       userName: socketToName[rooms[data.roomId].player1],
+      userElo: socketToElo[rooms[data.roomId].player1],
     });
     io.to(rooms[data.roomId].player2).emit("startGame", {
       play: true,
       fen: startFen,
       orientation: "black",
       opponentName: socketToName[rooms[data.roomId].player1],
+      opponentElo: socketToElo[rooms[data.roomId].player1],
       userName: socketToName[rooms[data.roomId].player2],
-      // userName: "Nicolae Guta",
+      userElo: socketToElo[rooms[data.roomId].player2],
     });
   });
   socket.on("newMove", (data) => {
