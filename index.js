@@ -70,6 +70,8 @@ io.on("connection", (socket) => {
   });
   socket.on("gameOver", (data) => {
     roomId = socketToRoom[socket.id];
-    io.to(roomId).emit("gameOver", { message: "game over!" });
+    console.log("game over: player1 is " + socketToName[rooms[roomId].player1], "and player2 is " + socketToName[rooms[roomId].player2]);
+    io.to(roomId).emit("gameOver", { fen: data.fen, whitePlayer: socketToName[rooms[roomId].player1], blackPlayer: socketToName[rooms[roomId].player2], whiteElo: socketToElo[rooms[roomId].player1], blackElo: socketToElo[rooms[roomId].player2] });
+    //TODO close the room
   })
 });
